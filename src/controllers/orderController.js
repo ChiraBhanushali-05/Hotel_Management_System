@@ -6,18 +6,19 @@ const Waiter = require("../models/waiter");
 const Invoice = require("../models/Invoice");
 const { successResponse, errorResponse } = require("../utils/responseFormat");
 
+
 const placeOrder = async (req, res) => {
   try {
     const { tableId, waiterId, customer_name, customer_mobile, items } = req.body;
 
     const table = await Table.findByPk(tableId);
     if (!table || table.reservationStatus !== "available") {
-      return errorResponse(res, "Table is not available.", 400);
+      return errorResponse(res,null, "Table is not available.", 400);
     }
 
     const waiter = await Waiter.findByPk(waiterId);
     if (!waiter) {
-      return errorResponse(res, null,"Waiter does not exist.", 400);
+      return errorResponse(res,null, "Waiter does not exist.", 400);
     }
 
     let totalAmount = 0;
@@ -59,14 +60,6 @@ const placeOrder = async (req, res) => {
 
     return successResponse(res, order, "Order placed successfully.", 201);
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return errorResponse(res, error.message, "Duplicate entry error.", 409); 
-    }
-
-    if (error.name === 'SequelizeForeignKeyConstraintError') {
-      return errorResponse(res, error.message, "Foreign key constraint error.", 404);
-    }
-
     return errorResponse(res, error.message, "Internal server error.");
   }
 };
@@ -95,7 +88,7 @@ const getOrderById = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, items } = req.body;
 
     const order = await Order.findByPk(id);
     if (!order) {
@@ -123,7 +116,37 @@ const updateOrderStatus = async (req, res) => {
       }
     }
 
-    return successResponse(res, order, "Order status updated successfully.");
+    if (items && Array.isArray(items)) {
+      await OrderItem.destroy({ where: { orderId: order.id } });
+
+      for (const item of items) {
+        const menuItem = await Menu.findByPk(item.menu_id);
+        if (!menuItem || !menuItem.isAvailable) {
+          return errorResponse(res, null, `Menu item with ID ${item.menu_id} is not available.`, 400);
+        }
+
+        await OrderItem.create({
+          orderId: order.id,
+          menu_id: item.menu_id,
+          quantity: item.quantity,
+        });
+      }
+
+      let totalAmount = 0;
+      for (const item of items) {
+        const menuItem = await Menu.findByPk(item.menu_id);
+        if (menuItem) {
+          totalAmount += menuItem.price * item.quantity;
+        }
+      }
+
+      const invoice = await Invoice.findOne({ where: { orderId: order.id } });
+      if (invoice) {
+        await invoice.update({ amount: totalAmount });
+      }
+    }
+
+    return successResponse(res, order, "Order status and items updated successfully.");
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return errorResponse(res, error.message, "Duplicate entry error.", 409);
@@ -159,8 +182,6 @@ const deleteOrder = async (req, res) => {
     return errorResponse(res, error.message, "Internal server error.");
   }
 };
-
-
 const getOrdersByTableId = async (req, res) => {
   try {
     const { tableId } = req.params;
@@ -170,7 +191,6 @@ const getOrdersByTableId = async (req, res) => {
     return errorResponse(res, error.message, "Internal server error.");
   }
 };
-
 const getOrdersByWaiterId = async (req, res) => {
   try {
     const { waiterId } = req.params;
@@ -190,7 +210,6 @@ const getOrdersByStatus = async (req, res) => {
     return errorResponse(res, error.message, "Internal server error.");
   }
 };
-
 const getOrdersByCustomerId = async (req, res) => {
   try {
     const { customerId } = req.params;
@@ -200,6 +219,5 @@ const getOrdersByCustomerId = async (req, res) => {
     return errorResponse(res, error.message, "Internal server error.");
   }
 };
-
 module.exports = { placeOrder,getAllOrders,getOrderById,updateOrderStatus,deleteOrder,getOrdersByTableId,getOrdersByWaiterId,getOrdersByStatus,getOrdersByCustomerId
 };

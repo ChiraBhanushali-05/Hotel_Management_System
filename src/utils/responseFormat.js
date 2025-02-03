@@ -7,6 +7,12 @@ const successResponse = (res, data, message = "Request successful", statusCode =
 };
 
 const errorResponse = (res, error, message = "Request failed", statusCode = 500) => {
+    if (error==null){
+       return res.status(statusCode).json({
+            status:"error",
+            message,
+        });  
+    }
     res.status(statusCode).json({
         status:"error",
         message,
