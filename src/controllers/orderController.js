@@ -221,5 +221,4 @@ const getOrdersByCustomerId = async (req, res) => {
   }
 };
 
-module.exports = {placeOrdergetAllOrdersgetOrderByIdupdateOrderStatusdeleteOrdergetOrdersByTableIdgetOrdersByWaiterIdgetOrdersByStatusgetOrdersByCustomerId
-};
+module.exports = {placeOrder,getAllOrders,getOrderById,updateOrderStatus,deleteOrder,getOrdersByTableId,getOrdersByWaiterId,getOrdersByStatus,getOrdersByCustomerId};
