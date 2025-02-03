@@ -60,11 +60,11 @@ const placeOrder = async (req, res) => {
     return successResponse(res, order, "Order placed successfully.", 201);
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return errorResponse(res, error.message, "Duplicate entry error.", 409); // Conflict
+      return errorResponse(res, error.message, "Duplicate entry error.", 409); 
     }
 
     if (error.name === 'SequelizeForeignKeyConstraintError') {
-      return errorResponse(res, error.message, "Foreign key constraint error.", 404); // Not Found
+      return errorResponse(res, error.message, "Foreign key constraint error.", 404);
     }
 
     return errorResponse(res, error.message, "Internal server error.");
