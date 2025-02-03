@@ -41,3 +41,6 @@ const waiterSchema= sequelize.define('Waiter', {
   timestamps:true
 });
 module.exports=waiterSchema
+
+
+

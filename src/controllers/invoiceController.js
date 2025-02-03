@@ -110,7 +110,7 @@ const updateInvoiceStatus = async (req, res) => {
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
-
+    console.log(status)
     if (!["Paid", "Pending", "Failed", "Cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid payment status" });
     }

@@ -6,7 +6,7 @@ const orderController = require('../controllers/orderController');
 router.post('/placeOrder', validatePlaceOrderRequest, orderController.placeOrder);
 router.get('/all', orderController.getAllOrders);
 router.get('/:id', orderController.getOrderById);
-router.put('/:id/status', orderController.updateOrderStatus);
+router.put('/:id', orderController.updateOrderStatus);
 router.delete('/:id', orderController.deleteOrder);
 router.get('/table/:tableId', orderController.getOrdersByTableId);
 router.get('/waiter/:waiterId', orderController.getOrdersByWaiterId);
